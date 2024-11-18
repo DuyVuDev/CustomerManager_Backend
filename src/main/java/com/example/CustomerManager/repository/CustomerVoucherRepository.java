@@ -15,4 +15,8 @@ public interface CustomerVoucherRepository extends JpaRepository<CustomerVoucher
 
     @Transactional
     void deleteAllByCustomer_Id(String customerId);
+
+    boolean existsByCustomer_IdAndVoucher_Id(String customerId, Long voucherId);
+
+    CustomerVoucher findByCustomer_IdAndVoucher_Id(String customerId, Long voucherId);
 }

@@ -31,6 +31,8 @@ public class CustomerService {
 
     @Autowired
     private CustomerVoucherRepository customerVoucherRepository;
+    @Autowired
+    private CustomerVoucherService customerVoucherService;
 
     private String generateCustomerId() {
         int year = Year.now().getValue() % 100;
@@ -43,7 +45,7 @@ public class CustomerService {
             for (String part : parts) {
                 System.out.println(part);
             }
-            int autoIncrement = Integer.parseInt(parts[1])+1;
+            int autoIncrement = Integer.parseInt(parts[1]) + 1;
             return yearPart + "." + autoIncrement;
         } else return yearPart + ".1";
     }
@@ -69,6 +71,7 @@ public class CustomerService {
         responseCustomerDTO.setGender(customer.getGender());
         responseCustomerDTO.setScore(customer.getScore());
         responseCustomerDTO.setRankName(customer.getRank().getName());
+
         List<CustomerVoucher> customerVoucherList
                 = customerVoucherRepository.findAllByCustomer_Id(customer.getId());
         StringBuilder responseDiscountStr = new StringBuilder();
@@ -141,7 +144,8 @@ public class CustomerService {
                 customerVoucher.setVoucher(voucherRepository.findByDiscount(discount));
                 customerVoucher.setQuantity(quantity);
                 customerVoucherRepository.save(customerVoucher);
-            });}
+            });
+        }
 
 
         return customer;
@@ -151,7 +155,25 @@ public class CustomerService {
         customerRepository.deleteById(customer_id);
     }
 
-    public void deleteCustomersByIds(List<String> customer_ids) {
+    public void deleteAllCustomersByIds(List<String> customer_ids) {
         customerRepository.deleteAllById(customer_ids);
+    }
+
+    public void increaseScoreOfAllCustomers() {
+        List<Customer> customerList = customerRepository.findAll();
+        for (Customer customer : customerList) {
+            Random random = new Random();
+            customer.setScore(customer.getScore() + random.nextLong(1000));
+            Rank rank = customer.getRank();
+            customer.setRank(rankRepository.findRankByScore(customer.getScore()));
+            customerRepository.save(customer);
+            if (customer.getRank() != rank) {
+                Float reward = customer.getRank().getReward();
+                customerVoucherService.addVoucherToCustomer(
+                        customer.getId(),
+                        voucherRepository.findByDiscount(reward).getId());
+            }
+        }
+
     }
 }

@@ -25,7 +25,7 @@ public class Rank {
     @Column(name = "reward", nullable = false)
     private Float reward;
 
-    @OneToMany(mappedBy = "rank", cascade = CascadeType.ALL, orphanRemoval = false)
+    @OneToMany(mappedBy = "rank", cascade = CascadeType.ALL)
     private Set<Customer> customers = new LinkedHashSet<>();
 
     public Rank() {

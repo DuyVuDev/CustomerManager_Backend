@@ -37,6 +37,12 @@ public class CustomerController {
         return customerService.updateCustomer(id, requestCustomerDto);
     }
 
+    @PutMapping("/randomScore")
+    String increaseScoreOfAllCustomers() {
+        customerService.increaseScoreOfAllCustomers();
+        return "success";
+    }
+
     @DeleteMapping("/{id}")
     String deleteCustomer(@PathVariable("id") String id) {
         customerService.deleteCustomerById(id);
@@ -45,7 +51,7 @@ public class CustomerController {
 
     @DeleteMapping("/deleteMultiple")
     String deleteCustomersByIds(@RequestBody List<String> ids) {
-        customerService.deleteCustomersByIds(ids);
+        customerService.deleteAllCustomersByIds(ids);
         return "Customers deleted";
     }
 }

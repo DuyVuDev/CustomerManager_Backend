@@ -27,13 +27,13 @@ public class RankController {
     }
 
     @PostMapping
-    public Rank createRank(@RequestBody RequestRankDTO requestRankDTO) {
-        return rankService.createRank(requestRankDTO);
+    public void createRank(@RequestBody RequestRankDTO requestRankDTO) {
+        rankService.createRank(requestRankDTO);
     }
 
     @PutMapping("/{id}")
-    public Rank updateRank(@PathVariable Long id,@RequestBody RequestRankDTO requestRankDTO) {
-        return rankService.updateRank(id, requestRankDTO);
+    public void updateRank(@PathVariable Long id,@RequestBody RequestRankDTO requestRankDTO) {
+        rankService.updateRank(id, requestRankDTO);
     }
 
     @DeleteMapping("/{id}")

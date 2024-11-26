@@ -18,7 +18,7 @@ public class Customer {
     private String name;
 
     @Column(name = "dob", nullable = false)
-    private LocalDate dob;
+    private String dob;
 
     @Column(name = "email", nullable = false)
     private String email;
@@ -60,11 +60,11 @@ public class Customer {
         this.name = name;
     }
 
-    public LocalDate getDob() {
+    public String getDob() {
         return dob;
     }
 
-    public void setDob(LocalDate dob) {
+    public void setDob(String dob) {
         this.dob = dob;
     }
 

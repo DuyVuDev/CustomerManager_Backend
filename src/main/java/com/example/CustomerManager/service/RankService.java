@@ -24,10 +24,11 @@ public class RankService {
 
     public List<ResponseRankDTO> getAllRanks() {
         List<ResponseRankDTO> responseRanks = new ArrayList<>();
-        List<Rank> rankList = rankRepository.findAll();
-        for (Rank rank : rankList) {
-            responseRanks.add(getRankById(rank.getId()));
-        }
+        Optional<List<Long>> rankList = rankRepository.getAllRankIds();
+        if (rankList.isPresent()) {for (Long rankId : rankList.get()) {
+            responseRanks.add(getRankById(rankId));
+        }}
+
         return responseRanks;
     }
 
@@ -103,6 +104,7 @@ public class RankService {
     }
 
     public void deleteRankById(Long id) {
+        if (id == 0) return;
         reassignRankToCustomersWhenRemoveRank(rankRepository.findById(id).get());
         rankRepository.deleteById(id);
     }

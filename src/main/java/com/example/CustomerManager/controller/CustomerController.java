@@ -5,6 +5,7 @@ import com.example.CustomerManager.dto.responses.ResponseCustomerDTO;
 import com.example.CustomerManager.entity.Customer;
 import com.example.CustomerManager.service.CustomerService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.repository.query.Param;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -18,8 +19,8 @@ public class CustomerController {
     private CustomerService customerService;
 
     @PostMapping
-    Customer createCustomer(@RequestBody RequestCustomerDTO requestCustomerDto) {
-        return customerService.createCustomer(requestCustomerDto);
+    void createCustomer(@RequestBody RequestCustomerDTO requestCustomerDto) {
+        customerService.createCustomer(requestCustomerDto);
     }
 
     @GetMapping
@@ -32,26 +33,32 @@ public class CustomerController {
         return customerService.getCustomerById(id);
     }
 
+    @GetMapping("/filter")
+    List<ResponseCustomerDTO> filterAndSortCustomer(
+            @RequestParam(name = "rankName") String rankName,
+            @RequestParam(name = "discount") String discount,
+            @RequestParam(name = "sortBy") String sortBy,
+            @RequestParam(name = "sortOrder") String sortOrder) {
+        return customerService.filterAndSortCustomer(rankName, discount, sortBy, sortOrder);
+    }
+
     @PutMapping("/{id}")
-    Customer updateCustomer(@PathVariable("id") String id, @RequestBody RequestCustomerDTO requestCustomerDto) {
-        return customerService.updateCustomer(id, requestCustomerDto);
+    void updateCustomer(@PathVariable("id") String id, @RequestBody RequestCustomerDTO requestCustomerDto) {
+        customerService.updateCustomer(id, requestCustomerDto);
     }
 
     @PutMapping("/randomScore")
-    String increaseScoreOfAllCustomers() {
+    void increaseScoreOfAllCustomers() {
         customerService.increaseScoreOfAllCustomers();
-        return "success";
     }
 
     @DeleteMapping("/{id}")
-    String deleteCustomer(@PathVariable("id") String id) {
+    void deleteCustomer(@PathVariable("id") String id) {
         customerService.deleteCustomerById(id);
-        return "Customer deleted";
     }
 
     @DeleteMapping("/deleteMultiple")
-    String deleteCustomersByIds(@RequestBody List<String> ids) {
+    void deleteCustomersByIds(@RequestBody List<String> ids) {
         customerService.deleteAllCustomersByIds(ids);
-        return "Customers deleted";
     }
 }

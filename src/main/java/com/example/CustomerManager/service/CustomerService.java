@@ -31,6 +31,7 @@ public class CustomerService {
 
     @Autowired
     private CustomerVoucherRepository customerVoucherRepository;
+
     @Autowired
     private CustomerVoucherService customerVoucherService;
 
@@ -38,24 +39,27 @@ public class CustomerService {
         int year = Year.now().getValue() % 100;
         String yearPart = String.format("%02d", year);
         Optional<List<String>> customerIdsInYearOpt = customerRepository.getCustomerIdInYear(yearPart);
-        if (customerIdsInYearOpt.isPresent()) {
+        List<Integer> autoIncrements = new ArrayList<>();
+        if (customerIdsInYearOpt.isPresent() && !customerIdsInYearOpt.get().isEmpty()) {
             List<String> customerIdsInYear = customerIdsInYearOpt.get();
-            String lastCustomerId = Collections.max(customerIdsInYear);
-            String[] parts = lastCustomerId.split("\\.");
-            for (String part : parts) {
-                System.out.println(part);
+            for (String customerId : customerIdsInYear) {
+                String[] customerIdParts = customerId.split("\\.");
+                autoIncrements.add(Integer.parseInt(customerIdParts[1]));
             }
-            int autoIncrement = Integer.parseInt(parts[1]) + 1;
+            int autoIncrement = Collections.max(autoIncrements) + 1;
             return yearPart + "." + autoIncrement;
         } else return yearPart + ".1";
     }
 
     public List<ResponseCustomerDTO> getAllCustomers() {
         List<ResponseCustomerDTO> responseCustomers = new ArrayList<>();
-        List<Customer> customerList = customerRepository.findAll();
-        for (Customer customer : customerList) {
-            responseCustomers.add(getCustomerById(customer.getId()));
+        Optional<List<String>> customerList = customerRepository.getAllCustomerIds();
+        if (customerList.isPresent()) {
+            for (String customerId : customerList.get()) {
+                responseCustomers.add(getCustomerById(customerId));
+            }
         }
+
         return responseCustomers;
     }
 
@@ -65,7 +69,7 @@ public class CustomerService {
         ResponseCustomerDTO responseCustomerDTO = new ResponseCustomerDTO();
         responseCustomerDTO.setId(customer.getId());
         responseCustomerDTO.setName(customer.getName());
-        responseCustomerDTO.setDob(customer.getDob());
+        responseCustomerDTO.setDob(String.valueOf(customer.getDob()));
         responseCustomerDTO.setEmail(customer.getEmail());
         responseCustomerDTO.setPhone(customer.getPhone());
         responseCustomerDTO.setGender(customer.getGender());
@@ -90,21 +94,21 @@ public class CustomerService {
         return responseCustomerDTO;
     }
 
-    public Customer createCustomer(RequestCustomerDTO requestCustomerDTO) {
+    public void createCustomer(RequestCustomerDTO requestCustomerDTO) {
         Customer customer = new Customer();
         customer.setId(generateCustomerId());
-        return handleDataFromRequestCustomerDTO(requestCustomerDTO, customer);
+        handleDataFromRequestCustomerDTO(requestCustomerDTO, customer);
     }
 
-    public Customer updateCustomer(String customer_id, RequestCustomerDTO requestCustomerDTO) {
+    public void updateCustomer(String customer_id, RequestCustomerDTO requestCustomerDTO) {
         Customer customer = customerRepository
                 .findById(customer_id)
                 .orElseThrow(() -> new RuntimeException("Customer not found"));
         customerVoucherRepository.deleteAllByCustomer_Id(customer.getId());
-        return handleDataFromRequestCustomerDTO(requestCustomerDTO, customer);
+        handleDataFromRequestCustomerDTO(requestCustomerDTO, customer);
     }
 
-    private Customer handleDataFromRequestCustomerDTO(RequestCustomerDTO requestCustomerDTO, Customer customer) {
+    private void handleDataFromRequestCustomerDTO(RequestCustomerDTO requestCustomerDTO, Customer customer) {
         customer.setName(requestCustomerDTO.getName());
         customer.setDob(requestCustomerDTO.getDob());
         customer.setEmail(requestCustomerDTO.getEmail());
@@ -120,6 +124,7 @@ public class CustomerService {
             Rank rank = rankRepository.findRankByScore(customer.getScore());
             customer.setRank(rank);
         }
+
         customerRepository.save(customer);
 
         //add customer's vouchers
@@ -146,9 +151,6 @@ public class CustomerService {
                 customerVoucherRepository.save(customerVoucher);
             });
         }
-
-
-        return customer;
     }
 
     public void deleteCustomerById(String customer_id) {
@@ -174,6 +176,18 @@ public class CustomerService {
                         voucherRepository.findByDiscount(reward).getId());
             }
         }
+    }
 
+    public List<ResponseCustomerDTO> filterAndSortCustomer(String rankName, String discount, String sortBy, String sortOrder) {
+        List<ResponseCustomerDTO> responseCustomerDTOs = new ArrayList<>();
+        Long rankId = Objects.equals(rankName, "null") ? null :rankRepository.findByName(rankName).getId();
+        Long voucherId = Objects.equals(discount, "null") ? null : voucherRepository.findByDiscount(Float.parseFloat(discount)).getId();
+        List<Customer> customerList = Objects.equals(sortOrder, "asc")
+                ? customerRepository.findAllBySortAndFilterAsc(rankId, voucherId, sortBy)
+                : customerRepository.findAllBySortAndFilterDesc(rankId, voucherId, sortBy);
+        for (Customer customer : customerList) {
+            responseCustomerDTOs.add(getCustomerById(customer.getId()));
+        }
+        return responseCustomerDTOs;
     }
 }

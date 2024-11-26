@@ -5,7 +5,7 @@ import java.time.LocalDate;
 public class ResponseCustomerDTO {
     private String id;
     private String name;
-    private LocalDate dob;
+    private String dob;
     private String email;
     private String phone;
     private Byte gender;
@@ -40,11 +40,11 @@ public class ResponseCustomerDTO {
         this.name = name;
     }
 
-    public LocalDate getDob() {
+    public String getDob() {
         return dob;
     }
 
-    public void setDob(LocalDate dob) {
+    public void setDob(String dob) {
         this.dob = dob;
     }
 

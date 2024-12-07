@@ -185,9 +185,65 @@ public class CustomerService {
         List<Customer> customerList = Objects.equals(sortOrder, "asc")
                 ? customerRepository.findAllBySortAndFilterAsc(rankId, voucherId, sortBy)
                 : customerRepository.findAllBySortAndFilterDesc(rankId, voucherId, sortBy);
+        if (Objects.equals(sortBy, "null") && Objects.equals(sortOrder, "asc")) {
+            List<String> idList = new ArrayList<>();
+            for (Customer customer : customerList) {
+                idList.add(customer.getId());
+            }
+            idList = sortCustomerListByIdAsc(idList);
+            for (String idStr : idList) {
+                System.out.println(idStr);
+                responseCustomerDTOs.add(getCustomerById(idStr));
+            }
+        } else if (Objects.equals(sortOrder, "desc") && Objects.equals(sortBy, "null")) {
+            List<String> idList = new ArrayList<>();
+            for (Customer customer : customerList) {
+                idList.add(customer.getId());
+            }
+            idList = sortCustomerListByIdDesc(idList);
+            for (String idStr : idList) {
+                System.out.println(idStr);
+                responseCustomerDTOs.add(getCustomerById(idStr));
+            }
+        }
+        else{
         for (Customer customer : customerList) {
             responseCustomerDTOs.add(getCustomerById(customer.getId()));
-        }
+        }}
         return responseCustomerDTOs;
+    }
+
+    private List<String> sortCustomerListByIdDesc(List<String> idList) {
+        idList.sort((id1,id2) -> {
+            String[] parts1 = id1.split("\\.");
+            String[] parts2 = id2.split("\\.");
+
+            int yy1 = Integer.parseInt(parts1[0]);
+            int yy2 = Integer.parseInt(parts2[0]);
+
+            if (yy1 != yy2) return Integer.compare(yy2, yy1);
+
+            // So sánh X theo chuỗi nếu chứa ký tự
+            return Integer.compare(Integer.parseInt(parts2[1]),Integer.parseInt(parts1[1]));
+        });
+        System.out.println(idList);
+        return idList;
+    }
+
+    private List<String> sortCustomerListByIdAsc(List<String> idList) {
+        idList.sort((id1,id2) -> {
+            String[] parts1 = id1.split("\\.");
+            String[] parts2 = id2.split("\\.");
+
+            int yy1 = Integer.parseInt(parts1[0]);
+            int yy2 = Integer.parseInt(parts2[0]);
+
+            if (yy1 != yy2) return Integer.compare(yy1, yy2);
+
+            // So sánh X theo chuỗi nếu chứa ký tự
+            return Integer.compare(Integer.parseInt(parts1[1]),Integer.parseInt(parts2[1]));
+        });
+        System.out.println(idList);
+        return idList;
     }
 }
